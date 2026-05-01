@@ -13,7 +13,17 @@ BormLangGrammarTest >> parserClass [
 
 { #category : 'tests' }
 BormLangGrammarTest >> testActivity [
-	self parse: 'activity "name"' rule: #activity
+	self parse: '(name)' rule: #activity
+]
+
+{ #category : 'tests' }
+BormLangGrammarTest >> testActivity1 [
+	self parse: '(id:name)' rule: #activity
+]
+
+{ #category : 'tests' }
+BormLangGrammarTest >> testActivity2 [
+	self parse: '()' rule: #activity
 ]
 
 { #category : 'tests' }
@@ -38,7 +48,7 @@ BormLangGrammarTest >> testConstraint [
 
 { #category : 'tests' }
 BormLangGrammarTest >> testConstraint1 [
-	self parse: ' if "condition"' rule: #constraint
+	self parse: '-condition-' rule: #constraint
 ]
 
 { #category : 'tests' }
@@ -98,7 +108,7 @@ BormLangGrammarTest >> testNode2 [
 BormLangGrammarTest >> testParticipant [
 	self
 		parse:
-			'Person "Customer" {
+			'Person Customer {
 }'
 		rule: #participant
 ]
@@ -200,22 +210,22 @@ BormLangGrammarTest >> testQuotedString [
 
 { #category : 'tests' }
 BormLangGrammarTest >> testState [
-	self parse: 'state "hello"' rule: #state
+	self parse: '[hello]' rule: #state
 ]
 
 { #category : 'tests' }
 BormLangGrammarTest >> testState1 [
-	self parse: 'initial state "hello"' rule: #state
+	self parse: '[*hello]' rule: #state
 ]
 
 { #category : 'tests' }
 BormLangGrammarTest >> testState2 [
-	self parse: 'final state "hello"' rule: #state
+	self parse: '[[hello]' rule: #state
 ]
 
 { #category : 'tests' }
 BormLangGrammarTest >> testState3 [
-	self parse: 'initial and final state "hello"' rule: #state
+	self parse: '[[*hello]' rule: #state
 ]
 
 { #category : 'tests' }

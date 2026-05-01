@@ -198,7 +198,7 @@ OPDslEditor >> initializePresenters [
 		add: editor;
 		add: autoUpdate
 		"
-	toolbar := self newMenu.
+	toolbar := self newMenuBar.
 	self buildToolbar: toolbar.
 	self layout add: toolbar.
 	(editor := self newText)

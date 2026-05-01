@@ -26,7 +26,7 @@ BormLangParser >> activity [
 	^ super activity ==> [ :pair | nodesLookup at: pair value put: (BormActivity named: pair key) ]
 	activity
 	^ super activity ==> [ :pair | nodesLookup at: pair first put: (BormActivity named: pair second) ]"
-	^ super activity ==> [ :pair | nodesLookup at: pair value put: (BormActivity named: pair key) ]
+	^ super activity ==> [ :pair | nodesLookup at: pair first put: (BormActivity named: pair second) ]
 
 ]
 
@@ -34,27 +34,38 @@ BormLangParser >> activity [
 BormLangParser >> communication [
 	^ super communication
 		==> [ :arr | 
-			| comm |
+			| comm s r |
 			comm := BormCommunication new.
-			comm receiver: arr first.
-			arr second ifNotNil: [ comm addDataFlowNamed: arr second ].
-			arr third ifNotNil: [ (comm addDataFlowNamed: arr third) beOutput ].
+			s :=((participantsLookup at: arr first key) at: arr first value).
+			r :=((participantsLookup at: arr second key) at: arr second value).
+			comm sender: s.
+			comm receiver: r.
+			arr third = '->' ifFalse: [comm constraint: arr third ].
+			arr fourth ifNotEmpty: [  arr fourth do:[:each| comm addDataFlow:each ]].
+			r receive: comm.
+			s send: comm.
 			comm ]
 ]
 
 { #category : 'accessing' }
 BormLangParser >> constraint [
-	^ super constraint ==> [ :condition | condition ifNotNil: [ BormConstraint named: condition ] ]
+	^ super constraint ==> [ :condition | condition ifNotNil: [ BormConstraint named: condition second ] ]
+]
+
+{ #category : 'accessing' }
+BormLangParser >> dataFlow [
+	^ super dataFlow ==> [ :df ||f| f:=BormDataFlow named: df second second .
+		df first = 'o->' ifTrue: [ f beOutput ].f]
+
 ]
 
 { #category : 'accessing' }
 BormLangParser >> diagram [
-"diagram
 	^ super diagram
 		==> [ :arr | 
 			| d |
 			d := BormORModel new.
-			d addAll: arr.
+			d addAll: arr first.
 
 			d ]"
 	^ super diagram
@@ -71,7 +82,13 @@ BormLangParser >> diagram [
 					n receive: each.
 					each receiver: n ].
 
-			d ]
+			d ]"
+]
+
+{ #category : 'accessing' }
+BormLangParser >> id [
+	^ super id ==> [ :i|  (nodesLookup at: i ).]
+	
 ]
 
 { #category : 'initialization' }
@@ -83,19 +100,7 @@ BormLangParser >> initialize [
 { #category : 'accessing' }
 BormLangParser >> node [
 	^ super node
-		map: [ :n :comms :trans | 
-			trans
-				do: [ :each | 
-					each source: n.
-					n addTransition: each ].
-			incompleteTransitions addAll: trans.
-
-			comms
-				do: [ :each | 
-					each sender: n.
-					n send: each ].
-			incompleteCommunications addAll: comms.
-			n ]
+	
 ]
 
 { #category : 'parsing' }
@@ -105,16 +110,16 @@ BormLangParser >> parseStatements: aString [
 
 { #category : 'accessing' }
 BormLangParser >> participant [
-"	^ super participant
+	^ super participant
 		==> [ :arr | 
 			| p |
 			p := BormParticipant new
 				name: arr second second;
 				type: arr first;
 				yourself.
-				nodesLookup := Dictionary new.
-				arr third do: [ :each|{ each first = $a ifTrue: [ p add: (self activity: each second )] ifFalse: [ p add:(self state:each   )] } ].
+				nodesLookup keysAndValuesDo: [:key :value| p add: value  ].
 				participantsLookup at: arr second first put: nodesLookup.
+				nodesLookup := Dictionary new.
 				p ]
 				"
 	^ super participant
@@ -124,9 +129,9 @@ BormLangParser >> participant [
 				name: arr second key;
 				type: arr first;
 				yourself.
-			"insert all nodes"
+			""insert all nodes""
 			arr third do: [ :each | p add: each ].
-			"finish transitions"
+			""finish transitions""
 			incompleteTransitions
 				do: [ :each | 
 					| n |
@@ -136,7 +141,7 @@ BormLangParser >> participant [
 			incompleteTransitions removeAll.
 			participantsLookup at: arr second value put: nodesLookup.
 			nodesLookup := Dictionary new.
-			p ]
+			p ]"
 ]
 
 { #category : 'accessing' }
@@ -146,8 +151,11 @@ BormLangParser >> participantType [
 
 { #category : 'parsing' }
 BormLangParser >> replaceModel: aModel withStatements: parsedModel [
-	aModel elements reset.
+	aModel elements removeAll.
 	parsedModel elements do: [ :each | aModel add: each ]
+	"replaceModel: aModel withStatements: parsedModel
+	aModel elements reset.
+	parsedModel elements do: [ :each | aModel add: each ]"
 ]
 
 { #category : 'private' }
@@ -160,7 +168,7 @@ BormLangParser >> resetCache [
 
 { #category : 'accessing' }
 BormLangParser >> state [
-"state
+
 	^ super state
 		map: [ :arr | 
 			| s t |
@@ -196,7 +204,7 @@ BormLangParser >> state [
 							s
 								beInitial;
 								beFinal ] ].
-			s ]
+			s ]"
 ]
 
 { #category : 'accessing' }
@@ -211,9 +219,20 @@ BormLangParser >> transition [
 			t ]"
 	^ super transition
 		==> [ :arr | 
-			| t |
+			arr size>=2 ifTrue:  [ arr do:[ :each|
+					|nextIndex nextElement|
+				
+				nextIndex:= ((arr indexOf:each)+1).
+				nextElement := (arr at: nextIndex  ifAbsent: [ nil ]).
+				nextElement ifNotNil: [  
+					| t |
+					
 			t := BormTransition new.
-			arr second ifNotNil: [ t constraint: arr second ].
-			t target: arr first.
-			t ]
+			t target: nextElement second;
+			source: each second.
+			nextElement first ifNotNil: [ t constraint: nextElement first ].
+			each second addTransition: t.
+			nextElement second addTransition: t.			
+								t 	]]]]
+			
 ]

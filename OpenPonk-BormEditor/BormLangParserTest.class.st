@@ -24,6 +24,18 @@ BormLangParserTest >> testActivity [
 ]
 
 { #category : 'tests' }
+BormLangParserTest >> testActivity1 [
+	super testActivity1 .
+	self assert: result name equals: 'name'
+]
+
+{ #category : 'tests' }
+BormLangParserTest >> testActivity2 [
+	super testActivity2 .
+	self assert: result name equals: ''
+]
+
+{ #category : 'tests' }
 BormLangParserTest >> testCommunication [
 	super testCommunication.
 	self assert: result receiver equals: 'Org::a'.
@@ -53,13 +65,13 @@ BormLangParserTest >> testCommunication2 [
 { #category : 'tests' }
 BormLangParserTest >> testConstraint [
 	super testConstraint.
-	self assert: result equals: nil
+	self assert: result isPetitFailure 
 ]
 
 { #category : 'tests' }
 BormLangParserTest >> testConstraint1 [
 	super testConstraint1.
-	self assert: result name equals: 'condition'
+	self assert: result  name equals: 'condition'
 ]
 
 { #category : 'tests' }
